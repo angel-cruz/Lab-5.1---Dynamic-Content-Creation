@@ -6,123 +6,101 @@ const totalPriceSpan = document.getElementById("total-price");
 const errorMessage = document.getElementById("error-message");
 
 function calculateTotal() {
-  let totalPrice = 0;
+    let total = 0;
+    const cartItems = document.querySelectorAll(".cart-item");
 
-  const cartItems = document.querySelectorAll(".cart-item");
+    cartItems.forEach((item) => {
+        const price = Number(item.dataset.price);
+        const quantity = Number(
+            item.querySelector(".quantity-input").value
+        );
 
-  cartItems.forEach(function (item) {
-    const price = Number(item.dataset.price);
-    const quantityInput = item.querySelector(".quantity-input");
-    const quantity = Number(quantityInput.value);
+        total += price * quantity;
+    });
 
-    totalPrice += price * quantity;
-  });
-
-  totalPriceSpan.textContent = totalPrice.toFixed(2);
+    totalPriceSpan.textContent = total.toFixed(2);
 }
 
 function removeItem(event) {
-  const item = event.target.closest(".cart-item");
+    const item = event.target.closest(".cart-item");
 
-  item.remove();
-
-  calculateTotal();
+    item.remove();
+    calculateTotal();
 }
 
 function updateQuantity(event) {
-  const quantityInput = event.target;
-  let quantity = Number(quantityInput.value);
+    const quantityInput = event.target;
 
-  if (quantity < 1) {
-    quantityInput.value = 1;
-  }
+    if (Number(quantityInput.value) < 1) {
+        quantityInput.value = 1;
+    }
 
-  calculateTotal();
+    calculateTotal();
 }
 
 function createCartItem(productName, productPrice) {
-  const listItem = document.createElement("li");
+    const listItem = document.createElement("li");
+    const productDetails = document.createElement("span");
+    const quantityLabel = document.createElement("label");
+    const quantityInput = document.createElement("input");
+    const removeButton = document.createElement("button");
 
-  listItem.classList.add("cart-item");
-  listItem.dataset.price = productPrice;
+    listItem.classList.add("cart-item");
+    listItem.dataset.price = productPrice;
 
-  const productDetails = document.createElement("span");
+    productDetails.textContent =
+        `${productName} - $${productPrice.toFixed(2)} each`;
 
-  productDetails.textContent =
-    `${productName} - $${productPrice.toFixed(2)} each`;
+    quantityLabel.textContent = "Qty: ";
 
-  const quantityLabel = document.createElement("label");
+    quantityInput.type = "number";
+    quantityInput.value = 1;
+    quantityInput.min = 1;
+    quantityInput.classList.add("quantity-input");
 
-  quantityLabel.textContent = "Qty: ";
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.classList.add("remove-button");
 
-  const quantityInput = document.createElement("input");
+    quantityInput.addEventListener("change", updateQuantity);
+    removeButton.addEventListener("click", removeItem);
 
-  quantityInput.type = "number";
-  quantityInput.value = 1;
-  quantityInput.min = 1;
+    quantityLabel.appendChild(quantityInput);
 
-  quantityInput.classList.add("quantity-input");
+    listItem.append(
+        productDetails,
+        quantityLabel,
+        removeButton
+    );
 
-  quantityInput.addEventListener(
-    "change",
-    updateQuantity
-  );
-
-  quantityLabel.appendChild(quantityInput);
-
-  const removeButton = document.createElement("button");
-
-  removeButton.textContent = "Remove";
-
-  removeButton.classList.add("remove-button");
-
-  removeButton.addEventListener(
-    "click",
-    removeItem
-  );
-
-  listItem.appendChild(productDetails);
-  listItem.appendChild(quantityLabel);
-  listItem.appendChild(removeButton);
-
-  return listItem;
+    return listItem;
 }
 
 function addProduct() {
-  const productName = productNameInput.value.trim();
-  const productPrice = Number(productPriceInput.value);
+    const productName = productNameInput.value.trim();
+    const productPrice = Number(productPriceInput.value);
 
-  errorMessage.textContent = "";
+    errorMessage.textContent = "";
 
-  if (productName === "") {
-    errorMessage.textContent =
-      "Please enter a product name.";
+    if (!productName) {
+        errorMessage.textContent = "Please enter a service name.";
+        return;
+    }
 
-    return;
-  }
+    if (!productPriceInput.value || productPrice <= 0) {
+        errorMessage.textContent =
+            "Please enter a valid price greater than $0.";
+        return;
+    }
 
-  if (
-    productPriceInput.value === "" ||
-    productPrice <= 0
-  ) {
-    errorMessage.textContent =
-      "Please enter a valid price greater than $0.";
+    const cartItem = createCartItem(productName, productPrice);
 
-    return;
-  }
+    cart.appendChild(cartItem);
 
-  const cartItem =
-    createCartItem(productName, productPrice);
+    productNameInput.value = "";
+    productPriceInput.value = "";
 
-  cart.appendChild(cartItem);
-
-  productNameInput.value = "";
-  productPriceInput.value = "";
-
-  calculateTotal();
+    calculateTotal();
 }
 
-addProductButton.addEventListener(
-  "click",
-  addProduct
-);
+addProductButton.addEventListener("click", addProduct);
